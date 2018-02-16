@@ -15,7 +15,7 @@ int main(void) {
   if (err != OpenFailure::NONE)
     printf("spi opened with failure %d", err);
 
-  const std::size_t buf_size = 24;
+  const std::size_t buf_size = 48;
   std::uint8_t tx_buffer[buf_size];
   std::uint8_t rx_buffer[buf_size];
   memset(tx_buffer, 0, buf_size);
