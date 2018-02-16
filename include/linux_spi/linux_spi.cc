@@ -96,7 +96,7 @@ int spi_xfer(const spi_state& state, uint8_t *tx_buffer, uint8_t tx_len, uint8_t
 
     memset(&spi_message, 0, sizeof(spi_message));
     
-    auto res = ioctl(state.fd(), SPI_IOC_MESSAGE(2), &spi_message);
+    auto res = ioctl(state.fd(), SPI_IOC_MESSAGE(1), &spi_message);
     if (res < 0) {
       LOG("could not tranfer");
       LOG_ERRNO();
