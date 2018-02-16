@@ -105,14 +105,13 @@ int spi_xfer(const spi_state& state, uint8_t *tx_buffer, uint8_t tx_len, uint8_t
   tx_buffer[0] = 0x01;
   tx_buffer[1] = 0x36;
 
-	struct spi_ioc_transfer transfer = {
-		.tx_buf        = 0,
-		.rx_buf        = 0,
-		.len           = 0,
-		.delay_usecs   = 0,
-		.speed_hz      = 0,
-		.bits_per_word = 0,
-	};
+	struct spi_ioc_transfer transfer{};
+  transfer.tx_buf        = 0;
+	transfer.rx_buf        = 0;
+	transfer.len           = 0;
+	transfer.delay_usecs   = 0;
+	transfer.speed_hz      = 0;
+	transfer.bits_per_word = 0;
 
 	memset(rx_buffer, 0, blocksize);
 	memset(tx_buffer, 0, blocksize);
