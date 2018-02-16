@@ -23,12 +23,12 @@ class spi_state {
     : device_(std::forward<decltype(device_)>(device_path))
     , config_(std::forward<decltype(config_)>(c)) {}
 
-  const spi_config& config() { return config_; }
+  const spi_config& config() const { return config_; }
 
-  const char* device() { return device_; }
+  const char* device() const { return device_; }
 
   // Return the current file descriptor.
-  int fd() { return fd_; }
+  int fd() const { return fd_; }
   void set_fd(int fd) { fd_ = fd; }
 
  private:
@@ -50,7 +50,7 @@ enum class OpenFailure {
 
 OpenFailure spi_open(spi_state& s);
 int spi_close(int fd);
-int spi_xfer(int fd, uint8_t *tx_buffer, uint8_t tx_len, uint8_t *rx_buffer, uint8_t rx_len);
+int spi_xfer(const spi_state& state, uint8_t *tx_buffer, uint8_t tx_len, uint8_t *rx_buffer, uint8_t rx_len);
 
 void register_errno_logging(int(*log)(const char* format, ...));
 

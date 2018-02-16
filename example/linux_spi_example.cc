@@ -28,7 +28,7 @@ int main(void) {
     printf("%x ", tx_buffer[i]);
   printf("\n");
 
-  spi_xfer(state.fd(), tx_buffer, buf_size, rx_buffer, buf_size);
+  spi_xfer(state, tx_buffer, buf_size, rx_buffer, buf_size);
 
   printf("recieved:\n");
   for (std::size_t i = 0; i < buf_size; ++i)

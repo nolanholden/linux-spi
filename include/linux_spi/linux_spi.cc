@@ -81,16 +81,22 @@ int spi_close(int fd) {
   return res;
 }
 
-int spi_xfer(int fd, uint8_t *tx_buffer, uint8_t tx_len, uint8_t *rx_buffer, uint8_t rx_len){
-    struct spi_ioc_transfer spi_message[2];
-    memset(spi_message, 0, sizeof(spi_message));
+int spi_xfer(const spi_state& state, uint8_t *tx_buffer, uint8_t tx_len, uint8_t *rx_buffer, uint8_t rx_len){
+    struct spi_ioc_transfer spi_message{};
+    spi_message.bits_per_word = state.config().bits_per_word;
+    spi_message.cs_change = 0;
+    spi_message.delay_usecs = 0;
+    spi_message.len = tx_len;
+    spi_message.pad = 0;
+    spi_message.rx_buf = (unsigned long)rx_buffer;
+    spi_message.rx_nbits = tx_len;
+    spi_message.speed_hz = state.config().speed;
+    spi_message.tx_buf = (unsigned long)tx_buffer;
+    spi_message.tx_nbits = rx_len;
+
+    memset(&spi_message, 0, sizeof(spi_message));
     
-    spi_message[0].tx_buf = (unsigned long)tx_buffer;
-    spi_message[0].len = tx_len;
-    spi_message[1].rx_buf = (unsigned long)rx_buffer;
-    spi_message[1].len = rx_len;
-    
-    auto res = ioctl(fd, SPI_IOC_MESSAGE(2), spi_message);
+    auto res = ioctl(state.fd(), SPI_IOC_MESSAGE(2), &spi_message);
     if (res < 0) {
       LOG("could not tranfer");
       LOG_ERRNO();
