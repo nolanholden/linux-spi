@@ -8,6 +8,16 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <string.h>
+#include <fcntl.h>
+#include <getopt.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <linux/ioctl.h>
+#include <linux/spi/spidev.h>
+#include <sys/ioctl.h>
 
 #include <linux/spi/spidev.h>
 
@@ -82,23 +92,73 @@ int spi_close(int fd) {
 }
 
 int spi_xfer(const spi_state& state, uint8_t *tx_buffer, uint8_t tx_len, uint8_t *rx_buffer, uint8_t rx_len){
-    struct spi_ioc_transfer spi_message{};
-    spi_message.bits_per_word = state.config().bits_per_word;
-    spi_message.delay_usecs = 0;
-    spi_message.len = tx_len;
-    spi_message.rx_buf = (unsigned long)rx_buffer;
-    spi_message.speed_hz = state.config().speed;
-    spi_message.tx_buf = (unsigned long)tx_buffer;
+  int res = 0;
+	int           fd;
+	int           blocksize   =  tx_len;
+	int           blocknumber = -1;
+	int           offset      =  0;
+	int           nb          =  0;
+	int           speed       = state.config().speed;
+	int           orig_speed  = -1;
 
-    memset(&spi_message, 0, sizeof(spi_message));
-    
-    auto res = ioctl(state.fd(), SPI_IOC_MESSAGE(1), &spi_message);
-    if (res < 0) {
-      LOG("could not tranfer");
-      LOG_ERRNO();
-    }
 
-    return res;
+  tx_buffer[0] = 0x01;
+  tx_buffer[1] = 0x36;
+
+	struct spi_ioc_transfer transfer = {
+		.tx_buf        = 0,
+		.rx_buf        = 0,
+		.len           = 0,
+		.delay_usecs   = 0,
+		.speed_hz      = 0,
+		.bits_per_word = 0,
+	};
+
+	memset(rx_buffer, 0, blocksize);
+	memset(tx_buffer, 0, blocksize);
+
+	transfer.rx_buf = (unsigned long)rx_buffer;
+	transfer.tx_buf = (unsigned long)tx_buffer;
+	transfer.len = blocksize;
+
+	fd = open("/dev/spidev1.0", O_RDONLY);
+	if (fd < 0) {
+		perror("could not open /dev/spidev1.0");
+  }
+
+  if (ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0) {
+    perror("SPI_IOC_WR_MAX_SPEED_HZ");
+  }
+
+	while ((blocknumber > 0) || (blocknumber == -1)) {
+		for (offset = 0; offset < blocksize; offset += nb) {
+			nb = read(STDIN_FILENO, & (tx_buffer[offset]), blocksize - offset);
+			if (nb <= 0)
+				break;
+		}
+		if (nb <= 0)
+			break;
+
+		if (ioctl(fd, SPI_IOC_MESSAGE(1), & transfer) < 0) {
+			perror("SPI_IOC_MESSAGE");
+			break;
+		}
+		if (write(STDOUT_FILENO, rx_buffer, blocksize) <= 0)
+			break;
+		if (blocknumber > 0)
+			blocknumber--;
+	}
+
+	if (orig_speed != -1) {
+		if ((res = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, & orig_speed)) < 0) {
+			perror("SPI_IOC_WR_MAX_SPEED_HZ");
+		}
+	}
+
+	if (blocknumber != 0)
+		return -1;
+
+	return res;
 }
 
 } // namespace linux_spi
