@@ -23,8 +23,7 @@ void register_errno_logging(int(*log)(const char* format, ...)) {
 
 #define LOG(format, ...) \
   do { \
-    if (sdata::errlog_func != nullptr) \
-      sdata::errlog_func("[linux_spi:] " format "\n", ##__VA_ARGS__); \
+      printf("[linux_spi:] " format "\n", ##__VA_ARGS__); \
   } while (0)
 #define LOG_ERRNO() \
   do { \
