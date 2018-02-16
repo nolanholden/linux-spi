@@ -23,10 +23,18 @@ int main(void) {
   tx_buffer[0] = 0x01;
   tx_buffer[1] = 0x36;
   
-  printf("sending %s, to spidev2.0 in full duplex \n ", tx_buffer);
+  printf("sending;\n");
+  for (std::size_t i = 0; i < buf_size; ++i)
+    printf("%x ", tx_buffer[i]);
+  printf("\n");
+
   spi_xfer(state.fd(), tx_buffer, buf_size, rx_buffer, buf_size);
 
-  printf("rx_buffer=%s\n", rx_buffer);
+  printf("recieved:\n");
+  for (std::size_t i = 0; i < buf_size; ++i)
+    printf("%x ", rx_buffer[i]);
+  printf("\n");
+
   spi_close(state.fd()); 
   
   return 0;
